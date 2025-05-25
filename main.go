@@ -223,48 +223,6 @@ func searchTeam(scanner *bufio.Scanner) {
 	}
 }
 
-// func sortTeams(scanner *bufio.Scanner) {
-// 	if len(teams) == 0 {
-// 		fmt.Println("Belum ada tim untuk diurutkan.")
-// 		return
-// 	}
-
-// 	fmt.Print("Gunakan Selection Sort atau Insertion Sort? (s/i): ")
-// 	scanner.Scan()
-// 	method := strings.ToLower(scanner.Text())
-
-// 	fmt.Print("Urut berdasarkan (w: menang, l: kalah, m: match): ")
-// 	scanner.Scan()
-// 	criteria := strings.ToLower(scanner.Text())
-
-// 	compare := func(a, b Team) bool {
-// 		switch criteria {
-// 		case "l":
-// 			return a.Losses > b.Losses
-// 		case "m":
-// 			return a.Matches > b.Matches
-// 		// case "s":
-// 		// 	return (a.ScoreFor - a.ScoreAgainst) > (b.ScoreFor - b.ScoreAgainst)
-// 		default: // default to "w"
-// 			return a.Wins > b.Wins
-// 		}
-// 	}
-
-// 	if method == "s" {
-// 		selectionSort(compare)
-// 	} else {
-// 		insertionSort(compare)
-// 	}
-
-// 	fmt.Println("\nHasil Pengurutan:")
-// 	fmt.Println("No | Nama Tim           | Main | Menang | Kalah | Skor For | Skor Against")
-// 	fmt.Println("--------------------------------------------------------------------------")
-// 	for i, t := range teams {
-// 		fmt.Printf("%-2d | %-18s | %-4d | %-6d | %-5d | %-8d | %-13d\n",
-// 			i+1, t.Name, t.Matches, t.Wins, t.Losses, t.ScoreFor, t.ScoreAgainst)
-// 	}
-// }
-
 func sortTeams(scanner *bufio.Scanner) {
 	if len(teams) == 0 {
 		fmt.Println("Belum ada tim untuk diurutkan.")
