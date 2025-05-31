@@ -1,11 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -23,6 +19,11 @@ type Team struct {
 	ScoreAgainst int
 }
 
+type TeamStat struct {
+	Team
+	WinRate float64
+}
+
 var teams []Team
 
 type Match struct {
@@ -35,14 +36,14 @@ type Match struct {
 var matchHistory []Match
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
 
+	// INFINITE LOOP UNTUK MENAMPILKAN MENU
 	for {
 		fmt.Println(green + "\n--- Aplikasi Pengelolaan E-Sports ---" + reset)
 		fmt.Println("1. Tambah Tim")
 		fmt.Println("2. Tambah Hasil Pertandingan")
 		fmt.Println("3. Tampilkan Klasemen")
-		fmt.Println("4. Cari Tim (Sequential/Binary Search)")
+		fmt.Println("4. Cari Tim")
 		fmt.Println("5. Urutkan Tim (Selection / Insertion Sort)")
 		fmt.Println("6. Statistik Tim Terbaik")
 		fmt.Println("7. Lihat Semua Tim")
@@ -50,22 +51,24 @@ func main() {
 		fmt.Println("9. Keluar")
 		fmt.Print("Pilih menu: ")
 
-		scanner.Scan()
-		switch scanner.Text() {
+		var input string
+		fmt.Scanln(&input)
+
+		switch input {
 		case "1":
-			addTeam(scanner)
+			addTeam()
 		case "2":
-			addMatchResult(scanner)
+			addMatchResult()
 		case "3":
 			showStandings()
 		case "4":
-			searchTeam(scanner)
+			searchTeam()
 		case "5":
-			sortTeams(scanner)
+			sortTeams()
 		case "6":
 			showBestTeam()
 		case "7":
-			viewAndEditTeams(scanner)
+			viewAndEditTeams()
 		case "8":
 			showAllMatches()
 		case "9":
@@ -76,32 +79,28 @@ func main() {
 	}
 }
 
-func addTeam(scanner *bufio.Scanner) {
-	fmt.Println("Masukkan detail tim:")
+func addTeam() {
+	var name string
+	var matches, wins, losses, scoreFor, scoreAgainst int
 
+	fmt.Println("Masukkan detail tim:")
 	fmt.Print("Nama tim: ")
-	scanner.Scan()
-	name := scanner.Text()
+	fmt.Scanln(&name)
 
 	fmt.Print("Jumlah pertandingan: ")
-	scanner.Scan()
-	matches, _ := strconv.Atoi(scanner.Text())
+	fmt.Scanln(&matches)
 
 	fmt.Print("Jumlah kemenangan: ")
-	scanner.Scan()
-	wins, _ := strconv.Atoi(scanner.Text())
+	fmt.Scanln(&wins)
 
 	fmt.Print("Jumlah kekalahan: ")
-	scanner.Scan()
-	losses, _ := strconv.Atoi(scanner.Text())
+	fmt.Scanln(&losses)
 
 	fmt.Print("Skor yang dicetak: ")
-	scanner.Scan()
-	scoreFor, _ := strconv.Atoi(scanner.Text())
+	fmt.Scanln(&scoreFor)
 
 	fmt.Print("Skor yang diterima: ")
-	scanner.Scan()
-	scoreAgainst, _ := strconv.Atoi(scanner.Text())
+	fmt.Scanln(&scoreAgainst)
 
 	teams = append(teams, Team{
 		Name:         name,
@@ -115,32 +114,33 @@ func addTeam(scanner *bufio.Scanner) {
 	fmt.Println("✅ Tim berhasil ditambahkan.")
 }
 
-func addMatchResult(scanner *bufio.Scanner) {
+func addMatchResult() {
+	var a, b string
+	var scoreA, scoreB int
+
 	fmt.Print("Nama tim A: ")
-	scanner.Scan()
-	a := scanner.Text()
+	fmt.Scanln(&a)
 
 	fmt.Print("Nama tim B: ")
-	scanner.Scan()
-	b := scanner.Text()
+	fmt.Scanln(&b)
 
 	fmt.Print("Skor tim A: ")
-	scanner.Scan()
-	scoreA, _ := strconv.Atoi(scanner.Text())
+	fmt.Scanln(&scoreA)
 
 	fmt.Print("Skor tim B: ")
-	scanner.Scan()
-	scoreB, _ := strconv.Atoi(scanner.Text())
+	fmt.Scanln(&scoreB)
 
 	updateTeamResult(a, scoreA, scoreB)
 	updateTeamResult(b, scoreB, scoreA)
+
 	matchHistory = append(matchHistory, Match{
 		TeamA:  a,
 		TeamB:  b,
 		ScoreA: scoreA,
 		ScoreB: scoreB,
 	})
-	fmt.Println("Hasil pertandingan dicatat.")
+
+	fmt.Println("✅ Hasil pertandingan dicatat.")
 }
 
 func updateTeamResult(name string, scoreFor, scoreAgainst int) {
@@ -180,12 +180,7 @@ func showStandings() {
 		return
 	}
 
-	sort.SliceStable(teams, func(i, j int) bool {
-		if teams[i].Wins == teams[j].Wins {
-			return (teams[i].ScoreFor - teams[i].ScoreAgainst) > (teams[j].ScoreFor - teams[j].ScoreAgainst)
-		}
-		return teams[i].Wins > teams[j].Wins
-	})
+	customSortByWinsAndGoalDiff(teams)
 
 	fmt.Println(green + "\nKlasemen Tim:")
 	fmt.Println("No | Nama Tim           | Main | Menang | Kalah | Skor For | Skor Against")
@@ -196,15 +191,15 @@ func showStandings() {
 	}
 }
 
-func searchTeam(scanner *bufio.Scanner) {
+func searchTeam() {
+	var query string
 	fmt.Print("Cari nama tim: ")
-	scanner.Scan()
-	query := strings.ToLower(scanner.Text())
+	fmt.Scanln(&query)
 
+	query = strings.ToLower(query)
 	var results []Team
 	for _, t := range teams {
-		nameLower := strings.ToLower(t.Name)
-		if strings.Contains(nameLower, query) {
+		if strings.Contains(strings.ToLower(t.Name), query) {
 			results = append(results, t)
 		}
 	}
@@ -223,29 +218,25 @@ func searchTeam(scanner *bufio.Scanner) {
 	}
 }
 
-func sortTeams(scanner *bufio.Scanner) {
+func sortTeams() {
 	if len(teams) == 0 {
 		fmt.Println("Belum ada tim untuk diurutkan.")
 		return
 	}
 
+	var method, criteria string
 	fmt.Print("Gunakan Selection Sort atau Insertion Sort? (s/i): ")
-	scanner.Scan()
-	method := strings.ToLower(scanner.Text())
+	fmt.Scanln(&method)
 
 	var compare func(a, b Team) bool
 
 	if method == "s" {
 		fmt.Print("Urut berdasarkan (w: menang, l: kalah, m: match, s: skor): ")
-		scanner.Scan()
-		criteria := strings.ToLower(scanner.Text())
-
+		fmt.Scanln(&criteria)
 		compare = getCompareFunc(criteria)
-
 		selectionSort(compare)
 		fmt.Println("✅ Diurutkan dengan Selection Sort.")
 	} else {
-		// Gunakan default sorting berdasarkan kemenangan
 		compare = func(a, b Team) bool {
 			return a.Wins > b.Wins
 		}
@@ -253,7 +244,6 @@ func sortTeams(scanner *bufio.Scanner) {
 		fmt.Println("✅ Diurutkan dengan Insertion Sort (default: kemenangan).")
 	}
 
-	// Tampilkan hasil urutan
 	fmt.Println(green + "\nHasil Pengurutan:")
 	fmt.Println("No | Nama Tim           | Main | Menang | Kalah | Skor For | Skor Against")
 	fmt.Println("--------------------------------------------------------------------------" + reset)
@@ -264,6 +254,7 @@ func sortTeams(scanner *bufio.Scanner) {
 }
 
 func selectionSort(compare func(a, b Team) bool) {
+	// FOR LOOP KLASIK
 	for i := 0; i < len(teams); i++ {
 		maxIdx := i
 		for j := i + 1; j < len(teams); j++ {
@@ -272,6 +263,19 @@ func selectionSort(compare func(a, b Team) bool) {
 			}
 		}
 		teams[i], teams[maxIdx] = teams[maxIdx], teams[i]
+	}
+}
+
+func insertionSort(compare func(a, b Team) bool) {
+	for i := 1; i < len(teams); i++ {
+		key := teams[i]
+		j := i - 1
+		// WHILE LOOP UNTUK MENGGESER TIM YANG LEBIH RENDAH
+		for j >= 0 && compare(key, teams[j]) {
+			teams[j+1] = teams[j]
+			j--
+		}
+		teams[j+1] = key
 	}
 }
 
@@ -289,22 +293,10 @@ func getCompareFunc(criteria string) func(a, b Team) bool {
 		return func(a, b Team) bool {
 			return (a.ScoreFor - a.ScoreAgainst) > (b.ScoreFor - b.ScoreAgainst)
 		}
-	default: // default ke kemenangan
+	default:
 		return func(a, b Team) bool {
 			return a.Wins > b.Wins
 		}
-	}
-}
-
-func insertionSort(compare func(a, b Team) bool) {
-	for i := 1; i < len(teams); i++ {
-		key := teams[i]
-		j := i - 1
-		for j >= 0 && compare(key, teams[j]) {
-			teams[j+1] = teams[j]
-			j--
-		}
-		teams[j+1] = key
 	}
 }
 
@@ -314,13 +306,13 @@ func showBestTeam() {
 		return
 	}
 
-	// Buat slice baru dengan winrate
-	type TeamStat struct {
-		Team
-		WinRate float64
-	}
+	// type TeamStat struct {
+	// 	Team
+	// 	WinRate float64
+	// }
 	var stats []TeamStat
 
+	// SEQUENTIAL SEARCH dengan FOR-RANGE
 	for _, t := range teams {
 		winRate := 0.0
 		if t.Matches > 0 {
@@ -329,23 +321,21 @@ func showBestTeam() {
 		stats = append(stats, TeamStat{t, winRate})
 	}
 
-	sort.Slice(stats, func(i, j int) bool {
-		return stats[i].WinRate > stats[j].WinRate
-	})
+	sortTeamStatsByWinRate(stats)
 
-	fmt.Println(green + "\nStatistik Tim dengan Performa Terbaik (berdasarkan Win Rate):")
+	fmt.Println(green + "\nStatistik Tim Terbaik:")
 	fmt.Println("No | Nama Tim           | Main | Menang | Win Rate (%)")
 	fmt.Println("-------------------------------------------------------" + reset)
 	for i, stat := range stats {
 		fmt.Printf("%-2d | %-18s | %-4d | %-6d | %.2f%%\n",
 			i+1, stat.Name, stat.Matches, stat.Wins, stat.WinRate)
-		if i == 2 { // hanya tampilkan top 3
+		if i == 2 {
 			break
 		}
 	}
 }
 
-func viewAndEditTeams(scanner *bufio.Scanner) {
+func viewAndEditTeams() {
 	if len(teams) == 0 {
 		fmt.Println("Belum ada tim yang tercatat.")
 		return
@@ -357,9 +347,9 @@ func viewAndEditTeams(scanner *bufio.Scanner) {
 			i+1, t.Name, t.Matches, t.Wins, t.Losses, t.ScoreFor, t.ScoreAgainst)
 	}
 
+	var choice int
 	fmt.Print("Masukkan nomor tim yang ingin diedit (atau 0 untuk batal): ")
-	scanner.Scan()
-	choice, _ := strconv.Atoi(scanner.Text())
+	fmt.Scanln(&choice)
 
 	if choice < 1 || choice > len(teams) {
 		fmt.Println("❌ Tidak ada tim yang dipilih.")
@@ -369,32 +359,47 @@ func viewAndEditTeams(scanner *bufio.Scanner) {
 	team := &teams[choice-1]
 
 	fmt.Printf("Edit data untuk tim '%s'\n", team.Name)
-	fmt.Print("Nama baru (enter jika tidak diubah): ")
-	scanner.Scan()
-	newName := scanner.Text()
+
+	var newName string
+	fmt.Print("Nama baru (kosong jika tidak diubah): ")
+	fmt.Scanln(&newName)
 	if newName != "" {
 		team.Name = newName
 	}
 
 	fmt.Print("Jumlah pertandingan: ")
-	scanner.Scan()
-	team.Matches, _ = strconv.Atoi(scanner.Text())
-
+	fmt.Scanln(&team.Matches)
 	fmt.Print("Jumlah kemenangan: ")
-	scanner.Scan()
-	team.Wins, _ = strconv.Atoi(scanner.Text())
-
+	fmt.Scanln(&team.Wins)
 	fmt.Print("Jumlah kekalahan: ")
-	scanner.Scan()
-	team.Losses, _ = strconv.Atoi(scanner.Text())
-
+	fmt.Scanln(&team.Losses)
 	fmt.Print("Skor yang dicetak: ")
-	scanner.Scan()
-	team.ScoreFor, _ = strconv.Atoi(scanner.Text())
-
+	fmt.Scanln(&team.ScoreFor)
 	fmt.Print("Skor yang diterima: ")
-	scanner.Scan()
-	team.ScoreAgainst, _ = strconv.Atoi(scanner.Text())
+	fmt.Scanln(&team.ScoreAgainst)
 
 	fmt.Println("✅ Tim berhasil diperbarui.")
+}
+
+func customSortByWinsAndGoalDiff(arr []Team) {
+	for i := 0; i < len(arr); i++ {
+		for j := i + 1; j < len(arr); j++ {
+			diffI := arr[i].ScoreFor - arr[i].ScoreAgainst
+			diffJ := arr[j].ScoreFor - arr[j].ScoreAgainst
+
+			if arr[j].Wins > arr[i].Wins || (arr[j].Wins == arr[i].Wins && diffJ > diffI) {
+				arr[i], arr[j] = arr[j], arr[i]
+			}
+		}
+	}
+}
+
+func sortTeamStatsByWinRate(stats []TeamStat) {
+	for i := 0; i < len(stats); i++ {
+		for j := i + 1; j < len(stats); j++ {
+			if stats[j].WinRate > stats[i].WinRate {
+				stats[i], stats[j] = stats[j], stats[i]
+			}
+		}
+	}
 }
